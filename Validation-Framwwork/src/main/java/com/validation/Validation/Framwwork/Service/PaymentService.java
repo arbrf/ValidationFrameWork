@@ -1,33 +1,39 @@
 package com.validation.Validation.Framwwork.Service;
 
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import com.validation.Validation.Framwwork.enums.ValidatorEnum;
 import com.validation.Validation.Framwwork.pojo.PaymentRequest;
 import com.validation.Validation.Framwwork.pojo.PaymentResponse;
+import com.validation.Validation.Framwwork.validator.PaymentFilterPaymentRequestValidator;
+import com.validation.Validation.Framwwork.validator.Validator;
 @Component
 public class PaymentService {
-
+	@Autowired
+	private ApplicationContext context;
+	
+	@Value("${payment.validators}")
+	private String validators;
     public PaymentResponse validateAndInitiatePayment(PaymentRequest paymentRequest) {
         PaymentResponse paymentResponse = new PaymentResponse();
+        
 
-        // Basic validation
-        if (paymentRequest == null) {
-            paymentResponse.setErrorCode("400");
-            paymentResponse.setErrorMessage("Invalid request: paymentRequest is null.");
-            return paymentResponse;
-        }
+		List<String> validatorList = Stream.of(validators.split(",")).collect(Collectors.toList());
 
-        if (paymentRequest.getPayment().getAmount() <= 0) {
-            paymentResponse.setErrorCode("400");
-            paymentResponse.setErrorMessage("Invalid request: Amount should be greater than 0.");
-            return paymentResponse;
-        }
-
-        if (paymentRequest.getPayment() == null || paymentRequest.getPayment().getPaymentMethod().isEmpty()) {
-            paymentResponse.setErrorCode("400");
-            paymentResponse.setErrorMessage("Invalid request: Payment method is required.");
-            return paymentResponse;
-        }
+		validatorList.forEach(validator -> {
+			ValidatorEnum validatorEnum = ValidatorEnum.getEnumByString(validator);
+			
+			Supplier<? extends Validator> validatorSupplier = () -> context.getBean(PaymentFilterPaymentRequestValidator.class);
+			validatorSupplier.get().doValidate(paymentRequest);
+		});
 
         // Assume we have a method to initiate payment and get a payment reference
         try {
