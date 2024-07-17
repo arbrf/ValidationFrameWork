@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import com.validation.Validation.Framwwork.enums.ValidatorEnum;
 import com.validation.Validation.Framwwork.pojo.PaymentRequest;
 import com.validation.Validation.Framwwork.pojo.PaymentResponse;
+import com.validation.Validation.Framwwork.pojo.TransactionReqRes;
 import com.validation.Validation.Framwwork.validator.PaymentFilterPaymentRequestValidator;
 import com.validation.Validation.Framwwork.validator.Validator;
 @Component
@@ -34,9 +35,12 @@ public class PaymentService {
 			Supplier<? extends Validator> validatorSupplier = () -> context.getBean(PaymentFilterPaymentRequestValidator.class);
 			validatorSupplier.get().doValidate(paymentRequest);
 		});
-
+			
         // Assume we have a method to initiate payment and get a payment reference
         try {
+        	Long userId = (long) 1001;
+        	TransactionReqRes transactionReqRes= initiateTransaction(userId, paymentRequest);
+
             String paymentReference = initiatePayment(paymentRequest);
             paymentResponse.setPaymentReference(paymentReference);
             paymentResponse.setRedirectUrl("http://example.com/redirect");
@@ -50,7 +54,14 @@ public class PaymentService {
         return paymentResponse;
     }
 
-    // Simulate payment initiation
+    private TransactionReqRes initiateTransaction(Long userId, PaymentRequest paymentRequest) {
+    	//TransactionReqRes transactionReqRes=TransactionReqRes.\
+    	TransactionReqRes transaction = new TransactionReqRes();
+    	System.out.println("Trnasation--------"+transaction);
+		return transaction;
+	}
+
+	// Simulate payment initiation
     private String initiatePayment(PaymentRequest paymentRequest) throws Exception {
         // Logic to initiate payment
         // For demonstration, we'll just return a dummy payment reference
